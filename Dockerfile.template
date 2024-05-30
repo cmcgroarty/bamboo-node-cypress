@@ -1,0 +1,48 @@
+# contains all dependencies for running Cypress.io Test Runner
+# https://on.cypress.io/docker and https://on.cypress.io/ci
+#
+FROM node:%VERSION%
+MAINTAINER Chris McGroarty "https://github.com/cmcgroarty"
+
+RUN apt-get update && apt-get install --no-install-recommends -y \
+libgtk2.0-0 \
+libgtk-3-0 \
+libnotify-dev \
+libgconf-2-4 \
+libgbm-dev \
+libnss3 \
+libxss1 \
+libasound2 \
+libxtst6 \
+procps \
+xauth \
+xvfb \
+# bamboo plan deps
+curl \
+ca-certificates \
+git
+
+# clean up
+RUN rm -rf /var/lib/apt/lists/* \
+&& apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+&& apt-get clean
+
+
+ADD https://github.com/dev-jan/ngsw-rehash/releases/download/v1.0/ngsw-rehash-linux-x86 /usr/bin/ngsw-rehash
+RUN chmod +x /usr/bin/ngsw-rehash
+
+# a few environment variables to make NPM installs easier
+# good colors for most applications
+ENV TERM=xterm
+# avoid million NPM install messages
+ENV npm_config_loglevel=warn
+# allow installing when the main user is root
+ENV npm_config_unsafe_perm=true
+
+RUN npm --version
+RUN npm install -g yarn@^1 pnpm@^9
+RUN npm install -g firebase-tools@^11 fireway@^1 json@^11
+
+RUN rm -rf /tmp/* \
+&& node -p process.versions \
+&& node -p 'module.paths'
