@@ -28,8 +28,7 @@ RUN rm -rf /var/lib/apt/lists/* \
 && apt-get clean
 
 # create bamboo user and group that aligns with prod-bamboo-az1 uid/gid
-RUN groupadd bamboo -g1002
-RUN useradd bamboo -u1002 -g1002 -d/home/bamboo -m -s/bin/bash
+RUN adduser bamboo --uid 1002 --shell /bin/bash
 
 
 # add ngsw-rehash
@@ -52,6 +51,3 @@ RUN rm -rf /tmp/* \
 && node -p 'module.paths'
 
 USER bamboo:bamboo
-# change shell to bash
-SHELL ["/bin/bash", "-c"]
-RUN source /home/bamboo/.profile
