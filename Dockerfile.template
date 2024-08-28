@@ -63,7 +63,7 @@ ENV TERM=xterm
 ENV npm_config_loglevel=warn
 
 RUN npm --version
-RUN npm install -g --force firebase-tools@^11 fireway@^1 json@^11
+RUN npm install -g --force firebase-tools@^13 fireway@^1 json@^11
 
 RUN rm -rf /tmp/* \
 && node -p process.versions \
