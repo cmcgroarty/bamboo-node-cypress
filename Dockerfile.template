@@ -4,7 +4,9 @@
 FROM node:%VERSION%
 LABEL org.opencontainers.image.authors="cmcgroarty@idesignconsulting.com"
 
-RUN apt-get update && apt-get install --no-install-recommends -y \
+SHELL ["/bin/bash", "--login" , "-c"]
+
+RUN apt update && apt install --no-install-recommends -y \
 libgtk2.0-0 \
 libgtk-3-0 \
 libnotify-dev \
@@ -16,25 +18,42 @@ libasound2 \
 libxtst6 \
 procps \
 xauth \
-xvfb \
+xvfb
+
 # bamboo plan deps
+RUN apt update && apt install --no-install-recommends -y \
 curl \
 ca-certificates \
-git
+git \
+gnupg
+
+# add yarn source
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+
+RUN apt update && apt install --no-install-recommends -y yarn
+
+# install pnpm from pnpm
+RUN curl -fsSL https://get.pnpm.io/install.sh | ENV="$HOME/.profile" SHELL="$(which bash)" bash -
 
 # clean up
 RUN rm -rf /var/lib/apt/lists/* \
-&& apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-&& apt-get clean
+&& apt purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+&& apt clean
+
+RUN source ~/.profile
 
 # create bamboo user and group that aligns with prod-bamboo-az1 uid/gid
-RUN adduser bamboo --uid 1002 --shell /bin/bash
+ENV USERNAME=bamboo
+ENV UID=1002
+ENV HOME=/home/$USERNAME
+RUN adduser $USERNAME --uid $UID  --home $HOME --shell /bin/bash
 
 
 # add ngsw-rehash
-ADD https://github.com/dev-jan/ngsw-rehash/releases/download/v1.0/ngsw-rehash-linux-x86 /home/bamboo/bin/ngsw-rehash
-RUN chown -R bamboo:bamboo /home/bamboo/bin
-RUN chmod +x /home/bamboo/bin/ngsw-rehash
+ADD https://github.com/dev-jan/ngsw-rehash/releases/download/v1.0/ngsw-rehash-linux-x86 $HOME/bin/ngsw-rehash
+RUN chown -R $USERNAME:$USERNAME $HOME/bin
+RUN chmod +x $HOME/bin/ngsw-rehash
 
 
 # a few environment variables to make NPM installs easier
@@ -44,7 +63,7 @@ ENV TERM=xterm
 ENV npm_config_loglevel=warn
 
 RUN npm --version
-RUN npm install -g --force pnpm@^9 yarn@^1 firebase-tools@^11 fireway@^1 json@^11
+RUN npm install -g --force firebase-tools@^11 fireway@^1 json@^11
 
 RUN rm -rf /tmp/* \
 && node -p process.versions \
