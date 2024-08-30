@@ -2,6 +2,7 @@
 set -e
 
 for v in */; do
-  v="${v%/}"
-  sed "s/%VERSION%/$v/g" Dockerfile.template > "$v/Dockerfile"
+	dir="${v%/}"
+  v="${v%-slim/}"
+  sed "s/%VERSION%/$v/g" Dockerfile.template > "$dir/Dockerfile"
 done

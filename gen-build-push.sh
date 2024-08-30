@@ -2,10 +2,9 @@
 set -e
 
 for v in */; do
-	tag="${v%-slim/}"
-	dir="${v%/}"
-	sed "s/%VERSION%/$dir/g" Dockerfile.template >"$dir/Dockerfile"
-	./build.sh "$tag"
+	v="${v%/}"
+	sed "s/%VERSION%/$v/g" Dockerfile.template >"$v/Dockerfile"
+	./build.sh "$v"
 done
 
 docker image push --all-tags cmcg/bamboo-node-cypress
